@@ -170,11 +170,12 @@ function showPlaylist(id, userID) {
         if (!data) { return; }
 
         currentPlaylistInfo = data;
+        console.log(data);
 
-        window.history.pushState("", "", clientDomain + 'playlist.html?id=' + id + '&user_id=' + userID);
+        // window.history.pushState("", "", clientDomain + 'playlist.html?id=' + id + '&user_id=' + userID);
 
         // Check if is editable
-        if (data.userID == userID) { isEditable = true; } 
+        if (data.userID == localStorage.getItem('userID')) { isEditable = true; } 
         else { isEditable = false; }
 
         // Update title
