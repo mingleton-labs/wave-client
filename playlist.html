@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+        
+        <!-- BROWSER -->
+        <title>Playlists | Gaming Time</title>
+        <link rel="icon" type="image/png" href="./content/images/favicon.png">
+        
+        <!-- PHOSPHORUS -->
+        <link rel="stylesheet" href="./phosphorus/framework.css">
+        <link rel="stylesheet" href="./phosphorus/app_framework.css">
+        <link rel="stylesheet" href="./phosphorus/dependencies.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+        <script src="./phosphorus/framework.js"></script>
+
+        <!-- CSS -->
+        <link rel="stylesheet" href="./css/global.css">
+        <link rel="stylesheet" href="./css/playlist.css">
+
+        <!-- JS -->
+        <script src="./js/global.js"></script>
+        <script src="./js/playlist.js"></script>
+    </head>
+
+    <body onload="loadFramework(); loadPage();">
+
+        <!-- NAV RAIL -->
+        <aside class="nav-rail">
+            <img src="./content/images/favicon.png" class="not-mobile">
+
+            <a class="button icon" href="./nowplaying.html"><span class="material-icons-round">headphones</span></a>
+            <a class="button icon outlined" href="./playlist.html"><span class="material-icons-round">library_music</span></a>
+            
+            <div class="sep horizontal"></div>
+
+            <button class="button icon" onclick="toggleFullScreen();" id="fullscreen-button"><span class="material-icons-round">fullscreen</span></button>
+            <div class="avatar-square" style="background-image: url(./content/images/record-placeholder.png)" id="avatar-square"></div>
+        </aside>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="content-vertical" id="playlist-list"></div>
+
+            <button class="button outlined" id="show-playlist-list-button" onclick="showOtherPlaylists();">Show all playlists</button>
+            <button class="button secondary contained" onclick="showPlaylistModal();">Create a new playlist</button>
+        </aside>
+
+        <!-- LOADER OVERLAY -->
+        <div class="content-loader" id="loader">
+            <span class="material-icons-round">hourglass_full</span>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus perspiciatis reprehenderit blanditiis necessitatibus vitae, molestiae iste optio esse eos, perferendis, laboriosam nesciunt unde consectetur eligendi. Necessitatibus sed ab quasi assumenda?</p>
+        </div>
+
+        <!-- PLAYLIST VIEW -->
+        <div class="content view" id="view-playlist">
+            <!-- NAV -->
+            <nav class="nav">
+                <h1 id="playlist-name">Playlist name</h1>
+                    
+                <div class="content-horizontal except become-mobile-sheet">
+                    <button data-alt='Categories' class="button tablet-only icon outlined" onclick="openDrawer()"><span class="material-icons-round">view_list</span></button>
+                    <span class="sep vertical tablet-only"></span>
+
+                    <button data-alt='Info' class="button icon" onclick="showPlaylistInfo();"><span class="material-icons-round">info</span></button>
+
+                    <span class="sep vertical"></span>
+
+                    <button data-alt='Add to queue' class="button icon secondary" onclick="addToQueue();"><span class="material-icons-round">queue_music</span></button>
+                </div>
+            </nav>
+
+            <div class="content-horizontal except">
+                <div class="input text" id="queue-search">
+                    <input type="text" placeholder="URL or search term...">
+                </div>
+
+                <button class="button icon secondary contained" id="add-to-playlist-button" onclick="addToPlaylist();"><span class="material-icons-round">playlist_add</span></button>
+            </div>
+
+            <div class="content-vertical" id="playlist-queue">
+                <div class="queue-item">
+                    <div class="content-vertical">
+                        <h4>Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim quo iste eligendi, incidunt illum praesentium animi laboriosam facilis provident molestiae nemo nam omnis iusto est debitis magnam tenetur, laborum aperiam.</h4>
+                        <p>Artist • @user</p>
+                    </div>
+
+                    <div class="sep vertical"></div>
+
+                    <p class="queue-timestamp">00:00:00</p>
+                    
+                    <button class="button icon secondary"><span class="material-icons-round">delete</span></button>
+                </div>
+
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+            </div>
+
+            <div class="content-horizontal except" id="playlist-duration">
+                <p>15 items, 0mins</p>
+            </div>
+        </div>
+
+        <!-- EMPTY VIEW -->
+        <div class="content view" id="view-empty" style="display: none;">
+            <div class="content-vertical">
+                <h2>Nothing to see here</h2>
+                <p>
+                    Absolutely nothing.
+                </p>
+            </div>
+        </div>
+    </body>
+</html>

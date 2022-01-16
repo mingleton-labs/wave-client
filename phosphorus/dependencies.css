@@ -1,0 +1,62 @@
+/* -- VARIABLES -- */
+:root {
+    /* Colours */
+    --primary: #F2F2F2;
+    --primary25: #f2f2f21c;
+    --primary50: #F2F2F221;
+    --primary75: #F2F2F2be;
+    --primaryLight: #cacaca;
+
+    --secondary: #EB9634;
+    --secondary25: #EB963418;
+    --secondary50: #EB963433;
+    --secondary75: #EB9634be;
+    --secondaryLight: #f5b164;
+
+    --tertiary: #1a1a25;
+    --tertiary25: #1a1a250e;
+    --tertiary50: #1a1a2521;
+    --tertiary75: #1a1a25be;
+    --tertiaryLight: #202020;
+
+    /* Misc */
+    --cornerRounding: 5px;
+    --transitionDuration: 0.1s;
+}
+@media (prefers-color-scheme: dark) {
+    :root {        
+        --primary: #1a1a25;
+        --primary25: #1a1a250e;
+        --primary50: #1a1a2521;
+        --primary75: #1a1a25be;
+        --primaryLight: #303030;
+    
+        --tertiary: #F2F2F2;
+        --tertiary25: #f2f2f21c;
+        --tertiary50: #f2f2f236;
+        --tertiary75: #f2f2f2be; 
+        --tertiaryLight: #cacaca;
+    }
+}
+
+/* -- FONTS -- */
+
+@font-face {
+    font-family: "Header";
+    src: url("../content/fonts/Akira\ Expanded\ Demo.otf");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Paragraph";
+    src: url("../content/fonts/SpaceGrotesk-Regular.ttf");
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: "Paragraph";
+    src: url("../content/fonts/SpaceGrotesk-Bold.ttf");
+    font-weight: bold;
+    font-style: normal;
+}

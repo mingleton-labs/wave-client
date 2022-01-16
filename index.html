@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+        
+        <!-- BROWSER -->
+        <title>Login | Gaming Time</title>
+        <link rel="icon" type="image/png" href="./content/images/favicon.png">
+        
+        <!-- PHOSPHORUS -->
+        <link rel="stylesheet" href="./phosphorus/framework.css">
+        <link rel="stylesheet" href="./phosphorus/app_framework.css">
+        <link rel="stylesheet" href="./phosphorus/dependencies.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+        <script src="./phosphorus/framework.js"></script>
+
+        <!-- CSS -->
+        <link rel="stylesheet" href="./css/global.css">
+        <link rel="stylesheet" href="./css/login.css">
+
+        <!-- JS -->
+        <script src="./js/global.js"></script>
+        <script src="./js/login.js"></script>
+    </head>
+
+    <body onload="loadFramework(); loadPage();">
+
+        <a href="https://discord.com/api/oauth2/authorize?client_id=931733366355664908&redirect_uri=http%3A%2F%2Flocalhost%3A5500%2Fclient&response_type=token&scope=identify%20guilds%20guilds.members.read" class="button secondary contained">Login with Discord</a>
+
+        <p id="info"></p>
+
+    </body>
+</html>

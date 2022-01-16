@@ -1,0 +1,47 @@
+.content { 
+    margin-right: 10px;
+}
+
+/* SIDEBAR */
+#playlist-list {
+    flex-grow: 1;
+}
+
+
+
+/* PLAYLIST */
+.input.text#queue-search {
+    margin: 10px 10px 10px 0px;
+}
+.button#add-to-playlist-button { 
+    margin: 10px 0px 10px 0px;
+    height: 61px;
+    width: 61px;
+}
+
+#playlist-duration { 
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+#playlist-duration > p { 
+    text-align: center;
+}
+
+
+
+/* MODALS */
+.modal-content { 
+    align-items: stretch;
+}
+.modal-content > p {
+    text-align: center;
+    margin: 5px;
+    display: none;
+}
+.modal-content .content-input { 
+    margin: 0px;
+}
+.modal-content > .button {
+    margin-top: 20px;
+}
