@@ -1,6 +1,9 @@
 // GLOBAL VARIABLES ------------------------------------------------------------
-const serverDomain = 'http://localhost:4242/';
-const clientDomain = 'http://localhost:5500/client/'
+// const serverDomain = 'http://localhost:4242/';
+// const clientDomain = 'http://localhost:5500/client/'
+
+const serverDomain = 'https://mingleton-py.herokuapp.com/';
+const clientDomain = 'https://mingleton.isaacshea.com/';
 
 
 // RELOAD PAGE -----------------------------------------------------------------
