@@ -30,6 +30,11 @@
     justify-content: center;
 
     box-shadow: 10px 10px 40px 1px rgba(0, 0, 0, 0.2);
+    transform: scale(0.9);
+    transition: transform 0.2s ease;
+}
+.record.playing { 
+    transform: scale(1.0);
 }
 .record:after {
     content: "";
@@ -49,7 +54,7 @@
     align-items: center;
     justify-content: center;
 }
-.record-image.playing { 
+.record.playing > .record-image { 
     animation: spin 20s infinite linear;
 }
 .record-centre { 
@@ -155,6 +160,10 @@
     justify-content: center;
 }
 
+#player-play-button:hover { 
+    transform: scale(1.1);
+}
+
 
 
 /* QUEUE/HISTORY */
@@ -183,4 +192,11 @@
 }
 #queue-duration > p, #history-duration > p { 
     text-align: center;
+}
+
+
+
+/* LOADER */
+.content-loader { 
+    width: calc(100% - 556px);
 }

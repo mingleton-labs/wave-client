@@ -35,8 +35,10 @@
     align-items: stretch;
 }
 .modal-content > p {
-    text-align: center;
     margin: 5px;
+}
+.modal-content > p:not(.playlist-text) {
+    text-align: center;
     display: none;
 }
 .modal-content .content-input { 

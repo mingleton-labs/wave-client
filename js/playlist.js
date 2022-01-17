@@ -25,10 +25,17 @@ function loadPage() {
     // Check URL Params
     let urlParams = new URLSearchParams(window.location.search);
     let id = urlParams.get('id');
-    let userID = urlParams.get('user_id');
-    if (id && userID) { 
-        showPlaylist(id, userID);
+    if (id) { 
+        showPlaylist(id);
     }
+
+    // Detect an enter press on the search input
+    document.getElementById('queue-search').querySelector('input').addEventListener('keyup', function(event) {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+            addToPlaylist();
+        }
+    });
 }
 
 
@@ -49,6 +56,7 @@ function showPlaylistList(isAll) {
             }
         }).then(data => {
             if (!data) { return; }
+            console.log(data);
 
             let playlistListContainer = document.getElementById('playlist-list');
             playlistListContainer.innerHTML = '';
@@ -59,7 +67,7 @@ function showPlaylistList(isAll) {
                 // Create list buttons 
                 let listButton = new Ph_ListButton({
                     title: item.name,
-                    subtitle: '@' + item.userName,
+                    subtitle: '@' + item.displayName,
                     parent: playlistListContainer,
                     type: 'outlined'
                 });
@@ -152,13 +160,13 @@ function createPlaylist() {
 
 
 // SHOW PLAYLIST ----------------------------------------------------------
-function showPlaylist(id, userID) {
+function showPlaylist(id) {
 
     showView('view-empty');
     updateLoader('Loading playlist...');
 
     // Get playlist information
-    fetch(serverDomain + 'playlist/?playlistID=' + id + '&userID=' + userID)
+    fetch(serverDomain + 'playlist/?playlistID=' + id + '&userID=' + localStorage.getItem('userID'))
     .then(response => {
         if (response.status == 404) { 
             hideLoader();
@@ -172,11 +180,14 @@ function showPlaylist(id, userID) {
         currentPlaylistInfo = data;
         console.log(data);
 
-        // window.history.pushState("", "", clientDomain + 'playlist.html?id=' + id + '&user_id=' + userID);
+        window.history.pushState("", "", clientDomain + 'playlist.html?id=' + id);
 
         // Check if is editable
-        if (data.userID == localStorage.getItem('userID')) { isEditable = true; } 
-        else { isEditable = false; }
+        isEditable = data.isEditable;
+
+        // Update UI
+        if (!isEditable) { document.getElementById('queue-search-box').style.display = 'none'; }
+        else { document.getElementById('queue-search-box').style.display = 'flex'; }
 
         // Update title
         document.getElementById('playlist-name').innerText = data.name;
@@ -195,22 +206,21 @@ function showPlaylist(id, userID) {
             // Fill out playlist queue
             let totalDuration = 0;
             for (item of data.items) { 
-                totalDuration += item.duration;
+                totalDuration += item.songDuration;
 
                 let queueItem = document.createElement('div');
                 queueItem.classList.add('queue-item');
-                queueItem.id = 'queue-index-' + item.index;
 
                 let contentVertical = document.createElement('div');
                 contentVertical.classList.add('content-vertical');
                 queueItem.appendChild(contentVertical);
 
                 let h4 = document.createElement('h4');
-                h4.innerHTML = item.name;
+                h4.innerHTML = item.songName;
                 contentVertical.appendChild(h4);
 
                 let p = document.createElement('p');
-                p.innerHTML = item.artist;
+                p.innerHTML = item.songArtist;
                 contentVertical.appendChild(p);
 
                 let sep1 = document.createElement('div');
@@ -218,7 +228,7 @@ function showPlaylist(id, userID) {
                 queueItem.appendChild(sep1);
 
                 let p2 = document.createElement('p');
-                p2.innerHTML = normaliseMinutes(item.duration);
+                p2.innerHTML = normaliseMinutes(item.songDuration);
                 queueItem.appendChild(p2);
 
                 if (isEditable) { 
@@ -287,9 +297,11 @@ function showPlaylistInfo() {
     } else { 
 
         // Create static information elements
-        let playlistInfo = document.createElement('p');
-        playlistInfo.innerHTML = '<b>Name:</b> ' + currentPlaylistInfo.name + '<br><b>Created by:</b>@' + currentPlaylistInfo.userName;
-        modalContent.appendChild(playlistInfo);
+        let playlistText = document.createElement('p');
+        playlistText.classList.add('playlist-text');
+        playlistText.innerHTML = '<b>Name:</b> ' + currentPlaylistInfo.name + '<br><b>Created by: </b>@' + currentPlaylistInfo.userName;
+        modalContent.appendChild(playlistText);
+        console.log(playlistText, modalContent);
     }
 }
 
@@ -358,7 +370,7 @@ function addToPlaylist() {
         if (response.status == 404) {
             createAlert('Unable to add to playlist', 'An error occurred.');
         } else if (response.status == 401) { 
-            createAlert('Unable to add to playlist', 'You must be signed in & in a voice channel.');
+            createAlert('Unable to add to playlist', 'This is not your playlist.');
         } else if (response.status == 200) {
             createAlert('success', 'Added to playlist!');
 

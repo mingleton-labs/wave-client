@@ -49,7 +49,7 @@ function updatePage() {
             }
 
             if (queue.isPlaying && !queue.isPaused) { 
-                document.getElementById('record-image').classList.add('playing');
+                document.getElementById('record').classList.add('playing');
 
                 // Update the play/pause button
                 document.getElementById('player-play-button').querySelector('span').innerHTML = 'pause';
@@ -188,10 +188,10 @@ function updatePage() {
 
             // Update play/pause button
             if (nowPlaying.isPlaying && !nowPlaying.isPaused) {
-                document.getElementById('record-image').classList.add('playing');
+                document.getElementById('record').classList.add('playing');
                 document.getElementById('player-play-button').querySelector('span').innerHTML = 'pause';
             } else {
-                document.getElementById('record-image').classList.remove('playing');
+                document.getElementById('record').classList.remove('playing');
                 document.getElementById('player-play-button').querySelector('span').innerHTML = 'play_arrow';
             }
         });
@@ -297,6 +297,8 @@ function toggleLoop() {
 
 function addToQueue(itemName) { 
 
+    updateLoader('Adding song to queue...');
+
     // Get inputs 
     let name = document.getElementById('queue-search').querySelector('input').value || itemName;
 
@@ -315,6 +317,8 @@ function addToQueue(itemName) {
             userID: localStorage.getItem('userID')
         })
     }).then(response => {
+        hideLoader();
+
         if (response.status == 404) {
             createAlert('Unable to add to queue', 'An error occurred.');
         } else if (response.status == 401) { 
@@ -327,6 +331,8 @@ function addToQueue(itemName) {
 
 function removeFromQueue(itemID) { 
 
+    updateLoader('Removing from playlist...');
+
     fetch(serverDomain + 'removeFromQueue/', {
         method: 'POST',
         headers: {
@@ -337,6 +343,8 @@ function removeFromQueue(itemID) {
             userID: localStorage.getItem('userID')
         })
     }).then(response => {
+        hideLoader();
+
         if (response.status == 404) {
             createAlert('Unable to remove from queue', 'An error occurred.');
         } else if (response.status == 401) { 

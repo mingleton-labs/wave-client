@@ -110,6 +110,8 @@ body.signed-out .avatar-square { display: none; }
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
+
 }
 .loader > span {
     font-size: 40px !important;
@@ -148,6 +150,9 @@ body.signed-out .avatar-square { display: none; }
 
     background-color: var(--tertiary25);
     border-radius: var(--cornerRounding);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 .content-loader.show { 
     display: flex;
