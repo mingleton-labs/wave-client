@@ -17,10 +17,10 @@
     --tertiary25: #1a1a250e;
     --tertiary50: #1a1a2521;
     --tertiary75: #1a1a25be;
-    --tertiaryLight: #202020;
+    --tertiaryLight: #474646;
 
     /* Misc */
-    --cornerRounding: 5px;
+    --cornerRounding: 10px;
     --transitionDuration: 0.1s;
 }
 @media (prefers-color-scheme: dark) {
@@ -29,7 +29,7 @@
         --primary25: #1a1a250e;
         --primary50: #1a1a2521;
         --primary75: #1a1a25be;
-        --primaryLight: #303030;
+        --primaryLight: #474646;
     
         --tertiary: #F2F2F2;
         --tertiary25: #f2f2f21c;
@@ -40,12 +40,17 @@
 }
 
 /* -- FONTS -- */
-
 @font-face {
     font-family: "Header";
-    src: url("../content/fonts/Akira\ Expanded\ Demo.otf");
+    src: url("../content/fonts/Metropolis-ExtraBold.ttf");
     font-weight: normal;
     font-style: normal;
+}
+@font-face {
+    font-family: "Header";
+    src: url("../content/fonts/Metropolis-ExtraBoldItalic.ttf");
+    font-weight: normal;
+    font-style: italic;
 }
 
 @font-face {

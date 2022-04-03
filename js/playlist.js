@@ -10,432 +10,492 @@ function loadPage() {
     showView('view-empty');
 
     // Check if signed in
-    if (localStorage.getItem('userID') === null) {
+    if (discordID === null) {       // DiscordID is stored locally & retrieved in global.js
         // Redirect to login page
-        window.location.href = './index.html';
+        window.location = './index.html';
         return;
-    } else {
-        // Update avatar image
-        document.getElementById('avatar-square').style.backgroundImage = 'url(' + localStorage.getItem('avatarURL') + ')';
     }
 
-    // Request all playlists
-    showPlaylistList(false);
+    updateLoader('loading', 'Loading page...');
+
+    // Fetch user information
+    fetch(serverDomain + 'user-info/?discordID=' + discordID)
+    .then(response => {
+        if (response.status === 400 || response.status === 404) { window.location = './index.html'; return; }
+        
+        return response.json();
+    }).then(userInfo => {
+        if (!userInfo) { return; }
+
+        console.log(userInfo);
+
+        // Update avatar
+        document.getElementById('avatar-square').style.backgroundImage = 'url(' + userInfo.avatar + ')';
+    });
+
+    // Detect an enter press on the search input
+    document.getElementById('input-search').querySelector('input').addEventListener('keyup', function(event) {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+            searchForSongs();
+        }
+    });
 
     // Check URL Params
     let urlParams = new URLSearchParams(window.location.search);
     let id = urlParams.get('id');
-    if (id) { 
-        showPlaylist(id);
-    }
+    if (id) { showPlaylist(id); }
 
-    // Detect an enter press on the search input
-    document.getElementById('queue-search').querySelector('input').addEventListener('keyup', function(event) {
-        if (event.keyCode === 13) {
-            event.preventDefault();
-            addToPlaylist();
+
+    // Load the page
+    showPlaylistList();
+}
+
+
+
+// PAGE FUNCTIONS ---------------------------------------------------------
+/** Creates a queue item with the given Song object
+ * @param {Object} itemInfo Song object info
+ */
+function createQueueItem(itemInfo) {
+
+    let queueItem = document.createElement('div');
+    queueItem.classList.add('queue-item');
+    queueItem.id = 'qi-' + itemInfo.itemID;
+
+    let contentVertical = document.createElement('div');
+    contentVertical.classList.add('content-vertical');
+    queueItem.appendChild(contentVertical);
+
+    let h4 = document.createElement('h4');
+    h4.innerHTML = itemInfo.name;
+    contentVertical.appendChild(h4);
+
+    let p = document.createElement('p');
+    p.innerHTML = itemInfo.artist + ' • ' + normaliseMinutes(itemInfo.duration);
+    contentVertical.appendChild(p);
+
+    let addToQueueButton = document.createElement('button');
+    addToQueueButton.classList.add('button', 'icon');
+    addToQueueButton.innerHTML = '<span class="material-icons-round">playlist_add</span>';
+    addToQueueButton.onclick = function() { addToQueue(itemInfo.youtubeUrl); }
+    queueItem.appendChild(addToQueueButton);
+
+    let deleteButton = document.createElement('button');
+    deleteButton.classList.add('button', 'icon');
+    deleteButton.innerHTML = '<span class="material-icons-round">delete</span>';
+    deleteButton.onclick = function() { removeFromPlaylist(itemInfo.id); }
+    queueItem.appendChild(deleteButton);
+
+    document.getElementById('playlist-queue').appendChild(queueItem);
+}
+
+/** Creates a search result item with the given Song object */
+function createSearchReult(itemInfo) { 
+
+    let searchResult = document.createElement('div');
+    searchResult.classList.add('search-result');
+
+    let resultImage = document.createElement('div');
+    resultImage.classList.add('search-result-image');
+    resultImage.style.backgroundImage = 'url(' + itemInfo.thumbnailUrl + ')';
+    searchResult.appendChild(resultImage);
+
+    let contentVertical = document.createElement('content-vertical');
+    contentVertical.classList.add('content-vertical');
+    searchResult.appendChild(contentVertical);
+
+    let h4 = document.createElement('h4');
+    h4.innerHTML = itemInfo.name;
+    contentVertical.appendChild(h4);
+
+    let p = document.createElement('p');
+    p.innerHTML = itemInfo.artist + ' • ' + normaliseMinutes(itemInfo.duration);
+    contentVertical.appendChild(p);
+
+    let button = document.createElement('button');
+    button.classList.add('button', 'secondary', 'contained');
+    button.innerHTML = 'Add to playlist';
+    let buttonUrl = itemInfo.url
+    button.onclick = function() { addToPlaylist(buttonUrl); closeAddSongModal(); }
+    contentVertical.appendChild(button);
+
+    document.getElementById('search-results').appendChild(searchResult);
+}
+
+/** Close the add song modal */
+function closeAddSongModal() { 
+    closeModal('modal-add-song');
+
+    // Clear search bar
+    document.getElementById('input-search').querySelector('input').value = '';
+
+    // Remove the results
+    let searchResultsContainer = document.getElementById('search-results');
+    searchResultsContainer.innerHTML = '';
+
+    // Add template results
+    let i = 1;
+    while (i < 10) { 
+        let searchResult = document.createElement('div');
+        searchResult.classList.add('search-result', 'empty');
+        searchResultsContainer.appendChild(searchResult);
+
+        i++;
+    }
+}
+
+/** Checks if a given URL is a valid image link */
+const isImgLink = (url) => {
+    if (typeof url !== 'string') {
+        return false;
+    }
+    return (url.match(/^http[^\?]*.(jpg|jpeg|gif|png|tiff|bmp)(\?(.*))?$/gmi) !== null);
+}
+
+
+
+// PLAYLIST LIST ----------------------------------------------------------
+/** Get a list of all the playlists, then display them down the right-hand sidebar
+ * @param {Boolean} isGetAll whether to get all playlists, or just the user's. Defaults to false.
+ */
+function showPlaylistList(isGetAll) { 
+
+    updateLoader('loading', 'Finding playlists...');
+    let url = serverDomain + 'playlist/?discordID=' + discordID;
+    if (isGetAll) { url += '&isGetAll=true'; }
+
+    fetch(url)
+    .then(response => { 
+        if (response.status !== 200) { updateLoader('error', 'Could not find playlists (error ' + response.status + ').'); return; }
+
+        return response.json();
+    }).then(playlistList => { 
+        if (!playlistList) { return; }
+        console.log(playlistList);
+
+        document.getElementById('playlist-list').innerHTML = '';
+
+        for (item of playlistList) { 
+            let button = document.createElement('button');
+            button.classList.add('button', 'playlist-list-button');
+
+            let contentVertical = document.createElement('div');
+            contentVertical.classList.add('content-vertical');
+            button.appendChild(contentVertical);
+            const playlistID = item.id;
+            button.onclick = function() { showPlaylist(playlistID); }
+
+            let h3 = document.createElement('h3');
+            h3.innerHTML = item.name;
+            contentVertical.appendChild(h3);
+
+            let p = document.createElement('p');
+            p.innerHTML = '@' + item.userDisplayName;
+            contentVertical.appendChild(p);
+
+            let icon = document.createElement('span');
+            icon.classList.add('material-icons-round');
+            icon.innerHTML = 'keyboard_arrow_right';
+            button.appendChild(icon);
+
+            document.getElementById('playlist-list').appendChild(button);
         }
+        updateLoader('done', 'Found playlists!');
     });
 }
 
-
-// SHOW PLAYLIST LIST ----------------------------------------------------
-function showPlaylistList(isAll) {
-
-    let query = serverDomain + 'playlist/list/';
-    if (!isAll) {
-        query += '?userID=' + localStorage.getItem('userID')
-    }
-
-    fetch(query)
-        .then(response => {
-            if (response.status == 404) { 
-                document.getElementById('playlist-list').innerHTML = '<p>No playlists found.</p>';
-            } else {
-                return response.json();
-            }
-        }).then(data => {
-            if (!data) { return; }
-            console.log(data);
-
-            let playlistListContainer = document.getElementById('playlist-list');
-            playlistListContainer.innerHTML = '';
-
-            // [ TODO ] - Create playlist list
-            for (item of data) { 
-
-                // Create list buttons 
-                let listButton = new Ph_ListButton({
-                    title: item.name,
-                    subtitle: '@' + item.displayName,
-                    parent: playlistListContainer,
-                    type: 'outlined'
-                });
-                let listButtonObject = listButton.instantiate();
-
-                // Add event
-                let listItem = item;
-                listButtonObject.onclick = function() { 
-                    showPlaylist(listItem.id, listItem.userID);
-                }
-            }
-        });
-}
-
-function showOtherPlaylists() { 
+/** Toggles between showing all playlists, and just this user's */
+function togglePlaylistList() { 
     isShowingAll = !isShowingAll;
     showPlaylistList(isShowingAll);
 
-    if (!isShowingAll) { 
-        document.getElementById('show-playlist-list-button').innerHTML = 'Show all playlists';
-    } else { 
-        document.getElementById('show-playlist-list-button').innerHTML = 'Show your playlists';
-    }
+    let button = document.getElementById('toggle-playlist-list-button');
+    if (isShowingAll) { button.innerHTML = 'Show your playlists'; }
+    else { button.innerHTML = 'Show all playlists'; }
 }
 
 
-// CREATE PLAYLIST --------------------------------------------------------
-function showPlaylistModal() { 
 
-    // Create modal
-    let modal = new Ph_Modal({
-        headerText: 'Create Playlist'
-    });
-    let modalObject = modal.instantiate();
-
-    // Modify modal content
-    let textInput = new Ph_Text({
-        placeholder: 'Playlist name...',
-        type: 'text',
-        parent: modalObject.querySelector('.modal-content')
-    });
-    let textInputObject = textInput.instantiate();
-    textInputObject.id = 'create-playlist-name';
-
-    let createButton = document.createElement('button');
-    createButton.classList.add('button', 'secondary', 'contained');
-    createButton.innerHTML = 'Create';
-    createButton.onclick = function() { createPlaylist(); } 
-    modalObject.querySelector('.modal-content').appendChild(createButton);
-
-    let errorMessage = document.createElement('p');
-    errorMessage.id = 'create-playlist-error';
-    modalObject.querySelector('.modal-content').appendChild(errorMessage);
-}
-
-function createPlaylist() {
-
-    // Get playlist name
-    let playlistName = '';
-    let playlistNameText = document.getElementById('create-playlist-name');
-    if (playlistNameText) { playlistName = playlistNameText.querySelector('input').value; }
-
-    // Check if playlist name is valid
-    if (!playlistName) {
-        document.getElementById('create-playlist-error').style.display = 'block';
-        document.getElementById('create-playlist-error').innerHTML = 'Please enter a playlist name.';
-        return;
-    }
-
-    // Create playlist
-    fetch(serverDomain + 'playlist/create', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                userID: localStorage.getItem('userID'),
-                playlistName: playlistName
-            })
-        }).then(response => {
-            if (response.status == 200) {
-                // Reload page
-                window.location.reload();
-            } else {
-                document.getElementById('create-playlist-error').style.display = 'block';
-                document.getElementById('create-playlist-error').innerHTML = 'Error creating playlist.';
-            }
-        });
-}
-
-
-// SHOW PLAYLIST ----------------------------------------------------------
+// PLAYLIST ---------------------------------------------------------------
+/** Show a playlist with the given ID
+ * @param {String} id the server-issued UUID of the playlist to show
+ */
 function showPlaylist(id) {
 
-    showView('view-empty');
-    updateLoader('Loading playlist...');
-
-    // Get playlist information
-    fetch(serverDomain + 'playlist/?playlistID=' + id + '&userID=' + localStorage.getItem('userID'))
+    updateLoader('loading', 'Finding playlist...');
+    fetch(serverDomain + 'playlist/?discordID=' + discordID + '&playlistID=' + id)
     .then(response => {
-        if (response.status == 404) { 
-            hideLoader();
-            createAlert('No playlist found');
-        } else {
-            return response.json();
-        }
-    }).then(data => {
-        if (!data) { return; }
-
-        currentPlaylistInfo = data;
-        console.log(data);
-
-        window.history.pushState("", "", clientDomain + 'playlist.html?id=' + id);
-
-        // Check if is editable
-        isEditable = data.isEditable;
-
-        // Update UI
-        if (!isEditable) { document.getElementById('queue-search-box').style.display = 'none'; }
-        else { document.getElementById('queue-search-box').style.display = 'flex'; }
-
-        // Update title
-        document.getElementById('playlist-name').innerText = data.name;
-
-        // Update items
-        let playlistQueue = document.getElementById('playlist-queue');
-        playlistQueue.innerHTML = '';
-
-        if (data.items.length == 0) { 
-            playlistQueue.innerHTML = '<p>No items in playlist yet.</p>';
-
-            // Update playlist duration
-            document.getElementById('playlist-duration').querySelector('p').innerHTML = '0 items, 00:00mins.';
-        } else {
-
-            // Fill out playlist queue
-            let totalDuration = 0;
-            for (item of data.items) { 
-                totalDuration += item.songDuration;
-
-                let queueItem = document.createElement('div');
-                queueItem.classList.add('queue-item');
-
-                let contentVertical = document.createElement('div');
-                contentVertical.classList.add('content-vertical');
-                queueItem.appendChild(contentVertical);
-
-                let h4 = document.createElement('h4');
-                h4.innerHTML = item.songName;
-                contentVertical.appendChild(h4);
-
-                let p = document.createElement('p');
-                p.innerHTML = item.songArtist;
-                contentVertical.appendChild(p);
-
-                let sep1 = document.createElement('div');
-                sep1.classList.add('sep', 'vertical');
-                queueItem.appendChild(sep1);
-
-                let p2 = document.createElement('p');
-                p2.innerHTML = normaliseMinutes(item.songDuration);
-                queueItem.appendChild(p2);
-
-                if (isEditable) { 
-                    let binButton = document.createElement('button');
-                    binButton.classList.add('button', 'icon', 'secondary', 'editable-only');
-                    binButton.innerHTML = '<span class="material-icons-round">delete</span>';
-                    let itemIndex = item.index;
-                    binButton.onclick = function() {
-                        removeFromPlaylist(itemIndex);
-                    };
-                    queueItem.appendChild(binButton);
-                }
-
-                playlistQueue.appendChild(queueItem);
-            }
-
-            // Update playlist duration
-            document.getElementById('playlist-duration').querySelector('p').innerHTML = data.items.length + ' items, ' + normaliseMinutes(totalDuration) + 'mins.';
+        if (response.status !== 200) { 
+            updateLoader('error', 'Could not find playlist (error ' + response.status + ').');
+            history.pushState({}, null, '/playlist.html');
+            return;
         }
 
-        hideLoader();
+        return response.json();
+    }).then(playlistInfo => {
+        if (!playlistInfo) { return; }
+
+        console.log(playlistInfo);
+
+        let totalMins = playlistInfo.songs.reduce((prev, curr) => prev + curr.duration, 0);
+
+        // Update the playlist info
+        document.getElementById('playlist-thumbnail').src = playlistInfo.thumbnailUrl;
+        document.getElementById('playlist-name').innerHTML = playlistInfo.name;
+        document.getElementById('playlist-subtitle').innerHTML = '@' + playlistInfo.userDisplayName + ' • ' + normaliseNumber(playlistInfo.songs.length, 2) + ' items, ' + normaliseMinutes(totalMins);
+        document.getElementById('playlist-description').innerHTML = playlistInfo.description;
+
+        // Check for edit permissions
+        let playlistSettingsButton = document.getElementById('playlist-settings-button');
+        let playlistAddButton = document.getElementById('playlist-add-button');
+        let playlistButtonDivider = document.getElementById('playlist-button-divider');
+
+        if (!playlistInfo.hasEditAccess) {
+            playlistSettingsButton.style.display = 'none';
+            playlistAddButton.style.display = 'none';
+            playlistButtonDivider.style.display = 'none';
+        } else {
+            playlistSettingsButton.style.display = 'flex';
+            playlistAddButton.style.display = 'flex';
+            playlistButtonDivider.style.display = 'inline-block';
+        }
+
+        // Add items to the queue list
+        document.getElementById('playlist-queue').innerHTML = '';
+        for (item of playlistInfo.songs) { createQueueItem(item); }
+        document.getElementById('playlist-duration').querySelector('p').innerHTML = normaliseNumber(playlistInfo.songs.length, 2) + ' items, ' + normaliseMinutes(totalMins);
+
+        // Update the urlParams
+        history.pushState({}, null, '/playlist.html?id=' + playlistInfo.id);
+        currentPlaylistInfo = playlistInfo;
+
+        // Show the view
+        updateLoader('done', 'Found playlist!');
         showView('view-playlist');
-    });
+    })
 }
 
-function showPlaylistInfo() { 
+/** Search for songs with the input provided. */
+function searchForSongs() {
 
-    // Create a modal
-    let modal = new Ph_Modal({
-        headerText: 'Playlist Info'
-    });
-    let modalObject = modal.instantiate();
-    let modalContent = modalObject.querySelector('.modal-content');
+    // Get input values
+    let searchQuery = getText('input-search').html.querySelector('input').value;
+    if (!searchQuery) { return; }
 
-    let textInputContainer = document.createElement('div');
-    textInputContainer.classList.add('content-vertical', 'content-input');
-    modalContent.appendChild(textInputContainer);
+    // Update loader
+    let searchButton = document.getElementById('search-button');
+    searchButton.classList.add('loader');
+    searchButton.querySelector('span').innerHTML = 'hourglass_full';
 
-    // If this playlist is editable...
-    if (isEditable) {
-        // Add name input
-        let textInput = new Ph_Text({
-            placeholder: 'Playlist name...',
-            type: 'text',
-            value: currentPlaylistInfo.name,
-            parent: textInputContainer
-        });
-        let textInputObject = textInput.instantiate();
-        textInputObject.id = 'edit-playlist-name';
+    // Fetch from server
+    fetch(serverDomain + 'song/search/?discordID=' + discordID + '&searchQuery=' + searchQuery)
+    .then(response => { 
+        if (response.status != 200) { updateLoader('error', 'An internal error occurred (error ' + response.status + ').'); return; }
 
-        let textInputPrompt = document.createElement('p');
-        textInputPrompt.classList.add('label');
-        textInputPrompt.innerHTML = 'The name of the playlist.';
-        textInputContainer.appendChild(textInputPrompt);
+        return response.json();
+    }).then(searchResults => { 
+        console.log(searchResults);
 
-        // Create save button
-        let saveButton = document.createElement('button');
-        saveButton.classList.add('button', 'secondary', 'contained');
-        saveButton.innerHTML = 'Save Playlist';
-        saveButton.onclick = function() { savePlaylist(); } 
-        modalContent.appendChild(saveButton);
+        // Update loader
+        searchButton.classList.remove('loader');
+        searchButton.querySelector('span').innerHTML = 'search';
 
-        let errorMessage = document.createElement('p');
-        errorMessage.id = 'edit-playlist-error';
-        modalContent.appendChild(errorMessage);
-    } else { 
+        // Clear the search results
+        let searchResultsContainer = document.getElementById('search-results');
+        searchResultsContainer.innerHTML = '';
 
-        // Create static information elements
-        let playlistText = document.createElement('p');
-        playlistText.classList.add('playlist-text');
-        playlistText.innerHTML = '<b>Name:</b> ' + currentPlaylistInfo.name + '<br><b>Created by: </b>@' + currentPlaylistInfo.userName;
-        modalContent.appendChild(playlistText);
-        console.log(playlistText, modalContent);
-    }
-}
-
-function savePlaylist() { 
-    // Get playlist name
-    let playlistName = '';
-    let playlistNameText = document.getElementById('edit-playlist-name');
-    if (playlistNameText) { playlistName = playlistNameText.querySelector('input').value; }
-
-    // Check if playlist name is valid
-    if (!playlistName) {
-        document.getElementById('create-playlist-error').style.display = 'block';
-        document.getElementById('create-playlist-error').innerHTML = 'Please enter a playlist name.';
-        return;
-    }
-
-    // Create playlist
-    fetch(serverDomain + 'playlist/edit', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                userID: localStorage.getItem('userID'),
-                playlistID: currentPlaylistInfo.id,
-                newPlaylistName: playlistName
-            })
-        }).then(response => {
-            if (response.status == 200) {
-                // Reload page
-                window.location.reload();
-            } else {
-                document.getElementById('edit-playlist-error').style.display = 'block';
-                document.getElementById('edit-playlist-error').innerHTML = 'Error editing playlist.';
-            }
-        });
-}
-
-
-// ADD TO PLAYLIST ---------------------------------------------------------
-function addToPlaylist() {
-
-    // Get input value
-    let song = document.getElementById('queue-search').querySelector('input').value;
-    if (!song) { 
-        createAlert('No song name provided');
-        return; 
-    }
-    document.getElementById('queue-search').querySelector('input').value = '';
-
-    updateLoader('Adding song to playlist...');
-
-    // Send to server
-    fetch(serverDomain + 'playlist/song/add/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            playlistID: currentPlaylistInfo.id,
-            userID: localStorage.getItem('userID'),
-            song: song
-        })
-    }).then(response => {
-        hideLoader();
-        if (response.status == 404) {
-            createAlert('Unable to add to playlist', 'An error occurred.');
-        } else if (response.status == 401) { 
-            createAlert('Unable to add to playlist', 'This is not your playlist.');
-        } else if (response.status == 200) {
-            createAlert('success', 'Added to playlist!');
-
-            // Get playlist info again
-            showPlaylist(currentPlaylistInfo.id, localStorage.getItem('userID'));
+        if (searchResults.length === 0) { 
+            let p = document.createElement('p');
+            p.innerHTML = 'Nothing was found. Perhaps try this with broader terms?';
+            searchResultsContainer.appendChild(p); 
+            return;
         }
+
+        // Create the search results
+        for (item of searchResults) { createSearchReult(item); }
+    })
+}
+
+/** Adds a song to the playlist */
+function addToPlaylist(query) {
+    if (!query) { return; }
+
+    updateLoader('loading', 'Adding this item...')
+
+    // POST to server
+    fetch(serverDomain + 'playlist/item/add/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            discordID: discordID,
+            playlistID: currentPlaylistInfo.id,
+            songQuery: query
+        })
+    }).then(response => { 
+        if (response.status === 200) { reloadPage(); } 
+        else { updateLoader('error', 'Something went wrong (error ' + response.status + ').'); return; }
+    })
+}
+
+/** Removes a song from the playlist */
+function removeFromPlaylist(itemID) { 
+
+    updateLoader('loading', 'Removing this item...')
+
+    // POST to server
+    fetch(serverDomain + 'playlist/item/remove/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            discordID: discordID,
+            playlistID: currentPlaylistInfo.id,
+            songID: itemID
+        })
+    }).then(response => { 
+        if (response.status === 200) { reloadPage(); } 
+        else { updateLoader('error', 'Something went wrong (error ' + response.status + ').'); return; }
+    })
+}
+
+/** Queue the entire current playlist */
+function queuePlaylist() {
+    if (!currentPlaylistInfo) { return; }
+
+    updateLoader('loading', 'Queueing this playlist...');
+    // POST to server
+    fetch(serverDomain + 'playlist/queue/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            discordID: discordID,
+            playlistID: currentPlaylistInfo.id,
+        })
+    }).then(response => { 
+        if (response.status === 200) { updateLoader('done', 'Queued your playlist!'); } 
+        else { updateLoader('error', 'Something went wrong (error ' + response.status + ').'); return; }
+
+        // If it's not playing, try to get it to
+        fetch(serverDomain + 'playback/begin/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ discordID: discordID })
+        })
     })
 }
 
 
-// REMOVE FROM PLAYLIST ----------------------------------------------------
-function removeFromPlaylist(index) { 
-    
-    updateLoader('Removing song from playlist...');
+
+// PLAYLIST CREATE/EDIT ---------------------------------------------------
+/** Show the playlist create/edit modal */
+function showPlaylistOptions(isEditing = false) { 
+
+    let optionsName = document.getElementById('options-name').querySelector('input');
+    let optionsThumbnailURL = document.getElementById('options-thumbnail-url').querySelector('input');
+    let optionsDescription = document.getElementById('options-description').querySelector('textarea');
+    let optionsUpdateButton = document.getElementById('options-update-button');
+    let optionsDeleteButton = document.getElementById('options-delete-button');
+
+    if (!isEditing) {
+        optionsName.value = '';
+        optionsThumbnailURL.value = '';
+        optionsDescription.value = '';
+
+        optionsUpdateButton.innerHTML = 'Create playlist';
+        optionsDeleteButton.style.display = 'none';
+
+        optionsUpdateButton.onclick = function() { updatePlaylist(false); }
+    } else {
+        optionsName.value = currentPlaylistInfo.name;
+        optionsThumbnailURL.value = currentPlaylistInfo.thumbnailUrl;
+        optionsDescription.value = currentPlaylistInfo.description;
+
+        optionsUpdateButton.innerHTML = 'Update playlist';
+        optionsDeleteButton.style.display = 'unset';
+
+        optionsUpdateButton.onclick = function() { updatePlaylist(true); }
+    }
+
+    openModal('modal-playlist-options');
+}
+
+/** Update/create the playlist */
+function updatePlaylist(isEditing = false) { 
+
+    // Collect payload
+    let payload = {
+        discordID: discordID,
+        name: getText('options-name').html.querySelector('input').value,
+        description: getTextArea('options-description').html.querySelector('textarea').value,
+        thumbnailUrl: getText('options-thumbnail-url').html.querySelector('input').value
+    }
+    if (isEditing) { payload.playlistID = currentPlaylistInfo.id; }
+
+    // Check required values
+    if (!payload.name || !payload.description || !payload.thumbnailUrl) { updateLoader('error', 'Please fill out all fields.'); return; }
+
+    // Check thumbnail URL
+    if (!isImgLink(payload.thumbnailUrl)) { updateLoader('error', 'Please enter a valid thumbnail URL.'); return; }
 
     // Send to server
-    fetch(serverDomain + 'playlist/song/remove/', {
+    let url = serverDomain + 'playlist/';
+    if (isEditing) { url += 'edit/'; } else { url += 'create/'; }
+    console.log(payload);
+    updateLoader('loading', 'Sending to server...');
+    fetch(url, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            playlistID: currentPlaylistInfo.id,
-            userID: localStorage.getItem('userID'),
-            songIndex: index
-        })
-    }).then(response => {
-        hideLoader();
-        if (response.status == 404 || response.status == 500) {
-            createAlert('Unable to remove from playlist', 'An error occurred.');
-        } else if (response.status == 200) {
-            createAlert('success', 'Removed song from playlist!');
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(response => { 
+        if (response.status !== 200) { updateLoader('error', 'Something went wrong (error ' + response.status + ').'); }
+        else { reloadPage(); }
+    })
+}
 
-            // Get playlist info again
-            showPlaylist(currentPlaylistInfo.id, localStorage.getItem('userID'));
-        }
+/** Delete the playlist */
+function deletePlaylist() { 
+
+    closeModal('modal-playlist-options');
+    updateLoader('loading', 'Deleting your playlist...');
+    fetch(serverDomain + 'playlist/delete/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ discordID: discordID, playlistID: currentPlaylistInfo.id })
+    }).then(response => { 
+        if (response.status !== 200) { updateLoader('error', 'Something went wrong (error ' + response.status + ').'); }
+        else { reloadPage(); }
     })
 }
 
 
-// ADD TO QUEUE ------------------------------------------------------------
-function addToQueue() { 
 
-    updateLoader('Adding playlist to queue...');
+// QUEUE ADD --------------------------------------------------------------
+/** Adds a song to the queue */
+function addToQueue(query) {
 
-    // Send request to server
-    fetch(serverDomain + 'playlist/addToQueue/', {
+    if (!query) { return; }
+
+    updateLoader('loading', 'Adding item to the queue...')
+
+    // POST to server
+    fetch(serverDomain + 'queue/add/', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            playlistID: currentPlaylistInfo.id,
-            userID: localStorage.getItem('userID')
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            discordID: discordID,
+            searchQuery: query
         })
-    }).then(response => {
-        hideLoader();
-        if (response.status == 500 || response.status == 404) {
-            createAlert('Unable to add to queue', 'An error occurred.');
-        } else if (response.status == 401) { 
-            createAlert('Unable to add to queue', 'There are no items on the playlist.');
-        } else if (response.status == 404) { 
-            createAlert('Unable to add to queue', 'This playlist doesn\'t exist');
-        } else if (response.status == 200) {
-            createAlert('success', 'Added to queue!');
-        }
-    });
+    }).then(response => { 
+        if (response.status === 200) { updateLoader('done', 'Added item to the queue!'); }
+        else if(response.status === 401) {
+            updateLoader('error', 'You\'re not connected to the same voice channel as @Wave'); return
+        } else { updateLoader('error', 'Something went wrong (error ' + response.status + ').'); return; }
+
+        // If it's not playing, try to get it to
+        fetch(serverDomain + 'playback/begin/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ discordID: discordID })
+        })
+    })
 }

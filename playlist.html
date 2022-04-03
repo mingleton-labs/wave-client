@@ -36,60 +36,168 @@
 
             <button class="button icon" onclick="toggleFullScreen();" id="fullscreen-button"><span class="material-icons-round">fullscreen</span></button>
             <div class="avatar-square" style="background-image: url(./content/images/record-placeholder.png)" id="avatar-square"></div>
+
+            <div class="sep invisible grow"></div>
+
+            <button class="button icon" id="drawer-open-button" onclick="openDrawer();">
+                <span class="material-icons-round">more_vert</span>
+            </button>
         </aside>
+
+        <!-- DRAWER -->
+        <div class="drawer-overlay hide" onclick="closeDrawer();">
+            <div class="drawer-content">
+                <button class="button" onclick="queuePlaylist();">
+                    <span class="material-icons-round">playlist_add</span>
+                    Queue this playlist
+                </button>
+
+                <div class="sep horizontal"></div>
+
+                <!-- GLOBAL BUTTONS-->
+                <button class="button" id="fullscreen-button" onclick="toggleFullScreen();">
+                    <span class="material-icons-round">fullscreen</span>
+                    Enter fullscreen
+                </button>
+                <button class="button"onclick="signOut();">
+                    <span class="material-icons-round">logout</span>
+                    Sign out
+                </button>
+                <button class="button"onclick="reloadPage();">
+                    <span class="material-icons-round">restart_alt</span>
+                    <div class="content-vertical">
+                        Reload page
+                        <h4>Discards changes</h4>
+                    </div>
+                </button>
+            </div>
+            <button class="button icon secondary contained drawer-close">
+                <span class="material-icons-round">cancel</span>
+            </button>
+        </div>
 
         <!-- SIDEBAR -->
         <aside class="sidebar">
-            <div class="content-vertical" id="playlist-list"></div>
+            <div class="content-vertical" id="playlist-list">
+                <!-- <button class="button playlist-list-button">
+                    <div class="content-vertical">
+                        <h3>Playlist name</h3>
+                        <p>Playlist creator</p>
+                    </div>
+                    <span class="material-icons-round">keyboard_arrow_right</span>
+                </button> -->
+            </div>
 
-            <button class="button outlined" id="show-playlist-list-button" onclick="showOtherPlaylists();">Show all playlists</button>
-            <button class="button secondary contained" onclick="showPlaylistModal();">Create a new playlist</button>
+            <button class="button outlined" id="toggle-playlist-list-button" onclick="togglePlaylistList();">Show all playlists</button>
+            <button class="button secondary contained" onclick="showPlaylistOptions();">Create a new playlist</button>
         </aside>
 
-        <!-- LOADER OVERLAY -->
-        <div class="content-loader" id="loader">
-            <span class="material-icons-round">hourglass_full</span>
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus perspiciatis reprehenderit blanditiis necessitatibus vitae, molestiae iste optio esse eos, perferendis, laboriosam nesciunt unde consectetur eligendi. Necessitatibus sed ab quasi assumenda?</p>
+        <!-- PLAYLIST OPTIONS MODAL -->
+        <div class="modal-overlay hide" id="modal-playlist-options" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">  
+                    <h1>Playlist options</h1>
+
+                    <button class="button icon contained" onclick="closeModal('modal-playlist-options');"><span class="material-icons-round">close</span></button>
+                </div>
+
+                <div class="modal-content" style="align-items: stretch;">
+                    <div class="input text" id="options-name">
+                        <input maxlength="50" type="text" placeholder="Playlist name..." autofocus>
+                    </div>
+
+                    <div class="input text" id="options-thumbnail-url">
+                        <input type="text" placeholder="Playlist thumbnail URL..." autofocus>
+                    </div>
+
+                    <div class="input textarea" id="options-description">
+                        <textarea maxlength="500" placeholder="A short description of your epic playlist..."></textarea>
+                    </div>
+
+                    <button id="options-update-button" class="button secondary contained" onclick="">Update playlist</button>
+                    <button id="options-delete-button" class="button secondary" onclick="deletePlaylist();">Delete playlist</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADD SONG MODAL -->
+        <div class="modal-overlay modal-overlay-add-song hide" id="modal-add-song" style="display: none;">
+            <div class="modal modal-add-song">
+                <div class="modal-header">  
+                    <h1>Add a Song</h1>
+
+                    <button class="button icon contained" onclick="closeAddSongModal();"><span class="material-icons-round">close</span></button>
+                </div>
+
+                <div class="modal-content">
+                    <div class="content-horizontal except">
+                        <div class="input text" id="input-search">
+                            <input type="text" placeholder="URL or search term..." autofocus>
+                        </div>
+        
+                        <button class="button icon secondary contained" id="search-button" onclick="searchForSongs();"><span class="material-icons-round">search</span></button>
+                    </div>
+
+                    <!-- SEARCH RESULTS -->
+                    <div class="search-results" id="search-results">
+                        <!-- <div class="search-result">
+                            <div class="search-result-image" style="background-image: url(./content/images/record-placeholder.png);"></div>
+
+                            <div class="content-vertical">
+                                <h4>Moth To A Flame (Extended Mix)</h4>
+                                <p>The Weeknd | 4:59</p>
+
+                                <button class="button secondary contained">Add to queue</button>
+                            </div>
+                        </div> -->
+                        
+                        <div class="search-result empty"></div>
+                        <div class="search-result empty"></div>
+                        <div class="search-result empty"></div>
+                        <div class="search-result empty"></div>
+                        <div class="search-result empty"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- PLAYLIST VIEW -->
         <div class="content view" id="view-playlist">
-            <!-- NAV -->
-            <nav class="nav">
-                <h1 id="playlist-name">Playlist name</h1>
-                    
-                <div class="content-horizontal except become-mobile-sheet">
-                    <button data-alt='Categories' class="button tablet-only icon outlined" onclick="openDrawer()"><span class="material-icons-round">view_list</span></button>
-                    <span class="sep vertical tablet-only"></span>
+            
+            <!-- PLAYLIST INFO -->
+            <div class="playlist-info">
+                <img id="playlist-thumbnail" src="./content/images/playlist-empty-state.png">
 
-                    <button data-alt='Info' class="button icon" onclick="showPlaylistInfo();"><span class="material-icons-round">info</span></button>
+                <div class="content-vertical">
+                    <h1 id="playlist-name">Playlist name</h1>
+                    <h4 id="playlist-subtitle">@Creator • -- songs, --:--:--</h4>
+                    <p id="playlist-description">
+                        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Accusantium voluptas harum temporibus quas molestiae ex quis eveniet officia in unde fugiat iusto, magnam veniam facere quidem dolorem mollitia esse vitae!
+                    </p>
 
-                    <span class="sep vertical"></span>
+                    <div class="content-horizontal except">
+                        <button onclick="showPlaylistOptions(true);" id="playlist-settings-button" style="margin-left: 0px;" class="button icon"><span class="material-icons-round">settings</span></button>
+                        
+                        <div id="playlist-button-divider" class="sep vertical"></div>
 
-                    <button data-alt='Add to queue' class="button icon secondary" onclick="addToQueue();"><span class="material-icons-round">queue_music</span></button>
+                        <button onclick="queuePlaylist();" class="button icon"><span class="material-icons-round">playlist_add</span></button>
+                        <button onclick="openModal('modal-add-song');" id="playlist-add-button" class="button icon secondary contained"><span class="material-icons-round">queue</span></button>
+                    </div>
                 </div>
-            </nav>
-
-            <div class="content-horizontal except" id="queue-search-box">
-                <div class="input text" id="queue-search">
-                    <input type="text" placeholder="URL or search term...">
-                </div>
-
-                <button class="button icon secondary contained" id="add-to-playlist-button" onclick="addToPlaylist();"><span class="material-icons-round">playlist_add</span></button>
             </div>
 
             <div class="content-vertical" id="playlist-queue">
+                <!-- SAMPLE ITEM -->
                 <div class="queue-item">
+
                     <div class="content-vertical">
-                        <h4>Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim quo iste eligendi, incidunt illum praesentium animi laboriosam facilis provident molestiae nemo nam omnis iusto est debitis magnam tenetur, laborum aperiam.</h4>
-                        <p>Artist • @user</p>
+                        <h4>Song 1 lol</h4>
+                        <p>Artist • @user • 00:00:00</p>
                     </div>
 
-                    <div class="sep vertical"></div>
-
-                    <p class="queue-timestamp">00:00:00</p>
+                    <button class="button icon"><span class="material-icons-round">queue</span></button>
                     
-                    <button class="button icon secondary"><span class="material-icons-round">delete</span></button>
+                    <button class="button icon"><span class="material-icons-round">delete</span></button>
                 </div>
 
                 <div class="queue-item empty"></div>
@@ -115,6 +223,12 @@
                     Absolutely nothing.
                 </p>
             </div>
+        </div>
+
+        <!-- LOADER -->
+        <div class="content-loader" id="master-loader">
+            <span class="material-icons-round">hourglass_full</span>
+            <p></p>
         </div>
     </body>
 </html>

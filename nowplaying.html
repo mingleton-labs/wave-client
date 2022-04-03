@@ -29,29 +29,145 @@
         <aside class="nav-rail">
             <img src="./content/images/favicon.png" class="not-mobile">
 
-            <a class="button icon outlined" href="./nowplaying.html"><span class="material-icons-round">headphones</span></a>
-            <a class="button icon signed-in-only" href="./playlist.html"><span class="material-icons-round">library_music</span></a>
+            <a class="button icon outlined" href="./nowplaying.html"><span class="material-icons-round">album</span></a>
+            <a class="button icon" href="./playlist.html"><span class="material-icons-round">library_music</span></a>
             
             <div class="sep horizontal"></div>
 
-            <button class="button icon" onclick="toggleFullScreen();" id="fullscreen-button"><span class="material-icons-round">fullscreen</span></button>
-            <div class="avatar-square" style="background-image: url(./content/images/record-placeholder.png)" id="avatar-square"></div>
+            <div class="avatar-square" style="background-image: url(./content/images/record-empty-state.png)" id="avatar-square"></div>
+
+            <div class="sep invisible grow"></div>
+
+            <button class="button icon" id="drawer-open-button" onclick="openDrawer();">
+                <span class="material-icons-round">more_vert</span>
+            </button>
         </aside>
+
+        <!-- DRAWER -->
+        <div class="drawer-overlay hide" onclick="closeDrawer();">
+            <div class="drawer-content">
+                <!-- PAGE BUTTONS -->
+                <button class="button" onclick="addCurrentItemPlaylist();">
+                    <span class="material-icons-round">queue</span>
+                    Add this song to a playlist
+                </button>
+                <button class="button" onclick="queueCurrentSong();">
+                    <span class="material-icons-round">playlist_add</span>
+                    Queue this song again
+                </button>
+
+                <div class="sep horizontal"></div>
+
+                <!-- GLOBAL BUTTONS-->
+                <button class="button" id="fullscreen-button" onclick="toggleFullScreen();">
+                    <span class="material-icons-round">fullscreen</span>
+                    Enter fullscreen
+                </button>
+                <button class="button"onclick="signOut();">
+                    <span class="material-icons-round">logout</span>
+                    Sign out
+                </button>
+                <button class="button"onclick="reloadPage();">
+                    <span class="material-icons-round">restart_alt</span>
+                    <div class="content-vertical">
+                        Reload page
+                        <h4>Discards changes</h4>
+                    </div>
+                </button>
+            </div>
+            <button class="button icon secondary contained drawer-close">
+                <span class="material-icons-round">cancel</span>
+            </button>
+        </div>
+
+        <!-- BOT OPTIONS MODAL -->
+        <div class="modal-overlay hide" id="modal-bot-options" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">  
+                    <h1>Bot options</h1>
+
+                    <button class="button icon contained" onclick="closeModal('modal-bot-options');"><span class="material-icons-round">close</span></button>
+                </div>
+
+                <div class="modal-content" style="align-items: stretch;">
+                    <button class="button secondary contained" onclick="stopBot();">Stop bot</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADD TO PLAYLIST MODAL -->
+        <div class="modal-overlay hide" id="modal-add-playlist" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">  
+                    <h1>Add to a playlist</h1>
+
+                    <button class="button icon contained" onclick="closeModal('modal-add-playlist');"><span class="material-icons-round">close</span></button>
+                </div>
+
+                <div class="modal-content" style="align-items: stretch;" id="add-playlist-content">
+                </div>
+
+                <button class="button secondary contained" onclick="addToPlaylist();">Add to playlist</button>
+            </div>
+        </div>
+
+        <!-- ADD SONG MODAL -->
+        <div class="modal-overlay modal-overlay-add-song hide" id="modal-add-song" style="display: none;">
+            <div class="modal modal-add-song">
+                <div class="modal-header">  
+                    <h1>Add a Song</h1>
+
+                    <button class="button icon contained" onclick="closeAddSongModal();"><span class="material-icons-round">close</span></button>
+                </div>
+
+                <div class="modal-content">
+                    <div class="content-horizontal except">
+                        <div class="input text" id="input-search">
+                            <input type="text" placeholder="URL or search term..." autofocus>
+                        </div>
+        
+                        <button class="button icon secondary contained" id="search-button" onclick="searchForSongs();"><span class="material-icons-round">search</span></button>
+
+                        <button class="button icon secondary" id="quick-add-button" onclick="addToQueue();"><span class="material-icons-round">fast_forward</span></button>
+                    </div>
+
+                    <!-- SEARCH RESULTS -->
+                    <div class="search-results" id="search-results">
+                        <!-- <div class="search-result">
+                            <div class="search-result-image" style="background-image: url(./content/images/record-placeholder.png);"></div>
+
+                            <div class="content-vertical">
+                                <h4>Moth To A Flame (Extended Mix)</h4>
+                                <p>The Weeknd | 4:59</p>
+
+                                <button class="button secondary contained">Add to queue</button>
+                            </div>
+                        </div> -->
+                        
+                        <div class="search-result empty"></div>
+                        <div class="search-result empty"></div>
+                        <div class="search-result empty"></div>
+                        <div class="search-result empty"></div>
+                        <div class="search-result empty"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- SIDEBAR -->
         <aside class="sidebar">
 
             <!-- RECORD -->
             <div class="record" id="record">
-                <div class="record-image" id="record-image" style="background-image: url(./content/images/record-placeholder.png);">
+                <div class="record-image" id="record-image" style="background-image: url(./content/images/record-empty-state.png);">
                     <div class="record-centre"></div>
                 </div>
             </div>
 
             <!-- PLAYER -->
             <div class="player">
-                <h1 id="player-title">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Similique laudantium sint eius inventore natus ipsam nam consequatur minima excepturi molestiae odit aut, sunt modi soluta laborum numquam earum expedita eaque.</h1>
-                <h3 id="player-artist">Artist • @user</h3>
+                <h1 id="player-title">Nothing is playing!</h1>
+                <h3 id="player-artist">Add something to get started</h3>
 
                 <input type="range" class="player-slider" id="player-slider" min="0" max="100" value="0" step="1">
                 <div class="player-slider-times"> 
@@ -59,50 +175,42 @@
                     <h4 id="player-length">0:00</h4>
                 </div>
 
-                <div class="player-buttons signed-in-only"> 
-                    <button class="button outlined button-player" id="player-rewind-button" onclick="rewind();"><span class="material-icons-round">skip_previous</button>
+                <div class="player-buttons">
+                    <div class="connection-count">
+                        <span class="material-icons-round">account_circle</span>
+                        <span id="connection-count">04</span>
+                    </div>
                     
-                    <button class="button icon secondary contained" id="player-play-button" onclick="playPause();"><span class="material-icons-round">play_arrow</span></button>
+                    <button class="button icon secondary contained" id="player-play-button" onclick="playbackTogglePause();"><span class="material-icons-round">play_arrow</span></button>
 
-                    <button class="button outlined button-player" onclick="skip();"><span class="material-icons-round" >skip_next</button>
+                    <button class="button outlined button-player" onclick="playbackSkip();"><span class="material-icons-round" >skip_next</button>
                 </div>
-
-                <a class="button secondary contained signed-out-only" style="margin: 15px 0px;" href="./index.html">Sign in to contribute</a>
             </div>
         </aside>
 
         <!-- LOADER OVERLAY -->
         <div class="content-loader" id="loader">
             <span class="material-icons-round">hourglass_full</span>
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus perspiciatis reprehenderit blanditiis necessitatibus vitae, molestiae iste optio esse eos, perferendis, laboriosam nesciunt unde consectetur eligendi. Necessitatibus sed ab quasi assumenda?</p>
+            <p></p>
         </div>
 
         <!-- QUEUE VIEW -->
         <div class="content view" id="view-queue">
             <!-- NAV -->
             <nav class="nav">
-                <h1>More Songs</h1>
+                <h1>Up Next</h1>
                     
-                <div class="content-horizontal except become-mobile-sheet">
-                    <button data-alt='Categories' class="button tablet-only icon outlined" onclick="openDrawer()"><span class="material-icons-round">view_list</span></button>
-                    <span class="sep vertical tablet-only"></span>
+                <div class="content-horizontal except">
 
-                    <button data-alt='Stop' class="button icon signed-in-only" onclick="stopPlaying();"><span class="material-icons-round">dangerous</span></button> 
-                    <button data-alt='Shuffle' class="button icon signed-in-only" onclick="shuffleQueue();"><span class="material-icons-round">shuffle</span></button>
+                    <button data-alt='Bot options' class="button icon" onclick="openModal('modal-bot-options');"><span class="material-icons-round">settings</span></button>
 
-                    <span class="sep vertical signed-in-only"></span>
+                    <span class="sep vertical"></span>
 
-                    <button data-alt='Repeat' id="loop-button" class="button icon" onclick="toggleLoop();"><span class="material-icons-round">repeat</span></button>
+                    <button data-alt='Loop the queue' id="loop-button" class="button icon" onclick="toggleLoop();"><span class="material-icons-round">repeat</span></button>
+
+                    <button data-alt='Add to queue' class="button icon secondary contained" onclick="openModal('modal-add-song');"><span class="material-icons-round">playlist_add</span></button>
                 </div>
             </nav>
-
-            <div class="content-horizontal except signed-in-only">
-                <div class="input text" id="queue-search">
-                    <input type="text" placeholder="URL or search term...">
-                </div>
-
-                <button class="button icon secondary contained" id="add-to-queue-button" onclick="addToQueue();"><span class="material-icons-round">queue_music</span></button>
-            </div>
 
             <!-- QUEUE/HISTORY SELECTOR -->
             <div class="content-horizontal except" id="queue-history-selector">
@@ -115,18 +223,20 @@
 
             <!-- QUEUE -->
             <div class="content-vertical" id="queue-list">
-                <div class="queue-item">
+
+                <!-- SAMPLE ITEM -->
+                <!-- <div class="queue-item" draggable="true">
+                    <span class="material-icons-round drag-indicator">drag_indicator</span>
+
                     <div class="content-vertical">
-                        <h4>Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim quo iste eligendi, incidunt illum praesentium animi laboriosam facilis provident molestiae nemo nam omnis iusto est debitis magnam tenetur, laborum aperiam.</h4>
-                        <p>Artist • @user</p>
+                        <h4>Song 1 lol</h4>
+                        <p>Artist • @user • 00:00:00</p>
                     </div>
 
-                    <div class="sep vertical"></div>
-
-                    <p class="queue-timestamp">00:00:00</p>
+                    <button class="button icon"><span class="material-icons-round">queue</span></button>
                     
-                    <button class="button icon secondary"><span class="material-icons-round">delete</span></button>
-                </div>
+                    <button class="button icon"><span class="material-icons-round">delete</span></button>
+                </div> -->
 
                 <div class="queue-item empty"></div>
                 <div class="queue-item empty"></div>
@@ -140,7 +250,14 @@
             
             <!-- HISTORY -->
             <div class="content-vertical" id="history-list">
-
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
+                <div class="queue-item empty"></div>
             </div>
 
             <div class="content-horizontal except" id="queue-duration">
@@ -161,6 +278,12 @@
                     Absolutely nothing.
                 </p>
             </div>
+        </div>
+
+        <!-- LOADER -->
+        <div class="content-loader" id="master-loader">
+            <span class="material-icons-round">hourglass_full</span>
+            <p></p>
         </div>
     </body>
 </html>

@@ -20,6 +20,7 @@ body, html {
     background-color: var(--primary);
     box-sizing: border-box;
 
+    overscroll-behavior: none;
     scroll-behavior: smooth;
 }
 
@@ -46,14 +47,14 @@ body, html {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     background: var(--primary75);
-    border-radius: var(--cornerRounding);
+    border-radius: calc(var(--cornerRounding) + 10px);
     box-shadow: 0px 0px 40px rgba(0,0,0,0.05);
 
     transition-duration: 0.2s;
     z-index: 999;
-    padding: 15px;
+    padding: 10px;
 
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 .ios .nav { 
     margin: 20px;
@@ -69,11 +70,11 @@ body, html {
     align-items: center;
 }
 .nav .button.icon {
-    padding: 10px;
+    padding: 15px;
 }
 .nav .button, .nav .sep.vertical {
     margin: 0px;
-    margin-left: 5px;
+    margin-left: 10px;
 }
 .nav .sep.vertical {
     height: 20px;
@@ -82,7 +83,7 @@ body, html {
 }
 .nav h1 {
     margin: 0px;
-    margin-left: 5px;
+    margin-left: 10px;
     display: -webkit-box;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
@@ -109,13 +110,13 @@ body, html {
     width: 50px;
     height: 50px;
     object-fit: cover;
-    margin: 0px 0px 10px 14px;
+    margin: 0px 0px 0px 13px;
 }
 .nav-rail > .button {
-    margin: 0px 0px 10px 10px;
+    margin: 10px 0px 0px 10px;
 }
 .nav-rail > .sep {
-    margin: 0px 15px 10px 25px;
+    margin: 10px 15px 10px 25px;
 }
 
 @media only screen and (max-width: 500px) {
@@ -226,7 +227,7 @@ body, html {
     margin: 10px;
     padding: 5px;
 
-    border-radius: var(--cornerRounding);
+    border-radius: calc(var(--cornerRounding) + 10px);
     background-color: var(--tertiary25);
 }
 @media only screen and (max-width: 1000px) {
@@ -392,7 +393,7 @@ body, html {
 
 
 
-/* -- DRAWER OVERLAY (MOBILE ONLY) -- */
+/* -- DRAWER OVERLAY -- */
 .drawer-overlay {
     position: fixed;
     top: 0;
@@ -402,18 +403,146 @@ body, html {
     z-index: 1002;
     transform: translateX(calc(100% + 10px));
 
-    background-color: var(--primary);
+    background-color: #0000003d;
 
     display: none;
     flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
+    align-items: flex-start;
+    justify-content: flex-end;
 
     box-sizing: border-box;
-    padding: 20px;
+    padding: 10px;
 }
 .drawer-overlay { animation: slideDown 0.25s ease forwards; }
 .drawer-overlay.show { animation: slideUp 0.25s ease forwards; }
 .drawer-overlay > .content-horizontal {
     justify-content: space-between;
+}
+
+.drawer-overlay > .button { 
+    margin: 10px 0px 0px 0px;
+}
+
+.drawer-content { 
+    background: var(--primary);
+    border-radius: calc(var(--cornerRounding) + 5px);
+
+    display: flex;
+    flex-direction: column;
+    padding: 2px;
+
+    width: 362px;
+    box-shadow: 0px 0px 40px rgba(0,0,0,0.1);
+}
+.drawer-content > .button { 
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    padding: 10px;
+    margin: 2px;
+
+    text-align: left;
+}
+.drawer-content > .button > span { 
+    margin: 10px 20px 10px 10px;
+}
+.drawer-content > .button > .content-vertical { 
+    margin: 0px;
+}
+.drawer-content > .button > .content-vertical > h4 { 
+    margin: 5px 0px 0px 0px;
+
+    font-size: 13px;
+    font-weight: normal;
+    text-transform: uppercase;
+    color: var(--secondary);
+}
+
+@media screen and (max-width: 500px) {
+    .drawer-overlay { 
+        align-items: stretch;
+        padding: 20px;
+    }
+    .drawer-content { width: unset; }
+}
+
+
+
+/* -- LOADERS -- */
+.loader {
+    flex-grow: 1;
+    /* height: 100%; */
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.loader > span {
+    margin: 0px;
+    color: var(--tertiary);
+    animation-name: spin;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
+.button.loader > span {
+    color: unset;
+    font-size: 24px !important;
+}
+
+.content-loader { 
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    z-index: 10001;
+    
+    background: var(--primary);
+    width: calc(100% - 396px);
+    box-shadow: 0px 0px 40px rgba(0,0,0,0.1);
+    border-radius: var(--cornerRounding);
+
+    display: none;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+}
+.content-loader { animation: slideDown 0.5s ease forwards; }
+.content-loader.show { animation: slideUp 0.5s ease forwards; }
+
+@media only screen and (max-width: 1000px) {
+    .content-loader { 
+        width: calc(100% - 86px);
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    .content-loader { 
+        bottom: 110px;
+        width: calc(100% - 20px);
+    }
+}
+
+.content-loader > span {
+    margin: 20px;
+    font-size: 24px !important;
+    color: var(--tertiary);
+}
+.content-loader > span.loading { 
+    animation-name: spin;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
+.content-loader > p { 
+    overflow: hidden;
+   text-overflow: ellipsis;
+   display: -webkit-box;
+   -webkit-line-clamp: 1; /* number of lines to show */
+   -webkit-box-orient: vertical;
+}
+
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }

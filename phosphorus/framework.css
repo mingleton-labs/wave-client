@@ -26,6 +26,7 @@
 h1 {
     font-family: "Header", sans-serif;
     font-weight: 800;
+    text-transform: uppercase;
 
     color: var(--secondary);
 }
@@ -33,6 +34,7 @@ h1 {
 h2 {
     font-family: "Header", sans-serif;
     font-weight: 800;
+    text-transform: uppercase;
 
     color: var(--tertiary);
 }
@@ -70,7 +72,7 @@ a {
     display: inline-block;
 }
 .sep.horizontal {
-    height: 1%;
+    height: 1px;
     box-sizing: border-box;
 
     border-bottom: 1px solid var(--tertiary);
@@ -78,6 +80,10 @@ a {
 }
 .sep.alt {
     border-bottom: 1px solid var(--secondary);
+}
+.sep.invisible { border: none; }
+.sep.grow { 
+    flex-grow: 1;
 }
 
 

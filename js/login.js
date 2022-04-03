@@ -7,42 +7,22 @@ function loadPage() {
 
     if (!accessToken) { console.log('not yet signed in'); return; }
 
-    fetch('https://discord.com/api/users/@me/guilds', {
+    fetch('https://discord.com/api/users/@me', {
         headers: {
             'Authorization': `${tokenType} ${accessToken}`
         }
     }).then(res => res.json()).then(res => {
 
+        const discordID = res.id;
+
         // Send to server for verification
-        fetch(serverDomain + 'authenticate/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                guilds: res
-            })
-        }).then( res => {
+        fetch(serverDomain + 'user-info/?discordID=' + discordID)
+        .then(res => {
             if (res.status === 200) {
 
-                // Get user info
-                fetch('https://discord.com/api/users/@me', {
-                    headers: {
-                        'Authorization': `${tokenType} ${accessToken}`
-                    }
-                }).then(res => res.json()).then(res => {
-
-                    // Save to local storage
-                    localStorage.setItem('userID', res.id);
-                    localStorage.setItem('avatarURL', 'https://cdn.discordapp.com/avatars/' + res.id + '/' + res.avatar + '.png');
-                    localStorage.setItem('tokenType', tokenType);
-                    localStorage.setItem('accessToken', accessToken);
-
-                    console.log(res);
-
-                    // Load nowplaying page
-                    window.location.href = './nowplaying.html';
-                });
+                // Save to local storage & move to next page
+                localStorage.setItem('discordID', discordID);
+                window.location = './nowplaying.html';
             } else {
                 document.getElementById('info').innerHTML = 'Something went wrong. Please try again. Error code: ' + res.status;
             }

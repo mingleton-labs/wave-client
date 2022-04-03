@@ -1,19 +1,23 @@
 // GLOBAL VARIABLES ------------------------------------------------------------
 // const serverDomain = 'http://localhost:4242/';
+// const socketServerDomain = 'ws://localhost:4242/';
 // const clientDomain = 'http://localhost:5500/';
 
 const serverDomain = 'https://mingleton-py.herokuapp.com/';
+const socketServerDomain = 'ws://mingleton-py.herokuapp.com/';
 const clientDomain = 'https://mingleton.isaacshea.com/';
 
+const discordID = localStorage.getItem('discordID');
+var loaderTimeout;
 
-// RELOAD PAGE -----------------------------------------------------------------
+
+// PAGE FUNCTIONS --------------------------------------------------------------
+/** Reloads the page */
 function reloadPage() {
     window.location.reload();
 }
 
-
-
-// TOGGLE FULLSCREEN -----------------------------------------------------------
+/** Toggles fullscreen mode on supported devices */
 function toggleFullScreen() {
     if ((document.fullScreenElement && document.fullScreenElement !== null) ||
         (!document.mozFullScreen && !document.webkitIsFullScreen)) {
@@ -26,7 +30,7 @@ function toggleFullScreen() {
         }
 
         // Change span icon
-        document.getElementById('fullscreen-button').querySelector('span').innerHTML = 'fullscreen_exit';
+        document.getElementById('fullscreen-button').innerHTML = '<span class="material-icons-round">fullscreen_exit</span> Exit fullscreen';
     } else {
         if (document.cancelFullScreen) {
             document.cancelFullScreen();
@@ -37,8 +41,15 @@ function toggleFullScreen() {
         }
 
         // Change span icon
-        document.getElementById('fullscreen-button').querySelector('span').innerHTML = 'fullscreen';
+        document.getElementById('fullscreen-button').innerHTML = '<span class="material-icons-round">fullscreen</span> Enter fullscreen';
     }    
+}
+
+/** Signs out of the current session, clearing all locally-stored variables */
+function signOut() { 
+    localStorage.clear();
+
+    window.location = './index.html';
 }
 
 
@@ -55,17 +66,37 @@ function showView(id) {
 
 
 
-// LOADER ----------------------------------------------------------------------
-function updateLoader(content) {
-    let loader = document.getElementById('loader');
-    loader.style.display = 'flex';
-    loader.querySelector('p').innerHTML = content;
+// LOADERS ---------------------------------------------------------------------
+/** Updates the loader
+ * @param {'loading' | 'error' | 'done'} type Type of loader to display
+ * @param {String} content Content of the loader
+ */
+function updateLoader(type, content) {
+    clearTimeout(loaderTimeout);
 
-    console.log('DEBUG: ' + content);
+    let loader = document.getElementById('master-loader');
+    loader.querySelector('p').innerHTML = content;
+    console.log(content);
+
+    loader.style.display = 'flex';
+    loader.classList.add('show');
+
+    let spinner = loader.querySelector('span');
+    spinner.classList = 'material-icons-round';
+    spinner.classList.add(type);
+
+    if (type === 'loading') { spinner.innerHTML = 'hourglass_full'; }
+    else if (type === 'error') { 
+        spinner.innerHTML = 'warning';
+        loaderTimeout = setTimeout(hideLoader, 2000);
+    } else if (type === 'done') { 
+        spinner.innerHTML = 'download_done';
+        loaderTimeout = setTimeout(hideLoader, 2000);
+    }
 }
 function hideLoader() { 
-    let loader = document.getElementById('loader');
-    loader.style.display = 'none';
+    let loader = document.getElementById('master-loader');
+    loader.classList.remove('show');
 }
 
 
@@ -138,7 +169,7 @@ function normaliseMinutes(calcSeconds) {
 
 
 
-// [ TABLET & MOBILE ] OPEN DRAWER ---------------------------------------------
+// OPEN DRAWER -----------------------------------------------------------------
 function openDrawer() {
     // Create a new mobile drawer
     let drawer = getMobileDrawer(0);
@@ -148,4 +179,26 @@ function openDrawer() {
 function closeDrawer() {
     let drawer = getMobileDrawer(0);
     if (drawer) { drawer.hide(); }
+}
+
+
+
+// OPEN/CLOSE MODAL -------------------------------------------------------------
+function openModal(id) { 
+    document.getElementById(id).style.display = 'flex';
+    document.getElementById(id).classList.remove('hide');
+
+    // Modal-specific commands
+    if (id == 'modal-add-song') { 
+        let searchInput = document.getElementById('input-search').querySelector('input');
+        searchInput.value = '';
+        searchInput.focus();
+    }
+}
+
+function closeModal(id) { 
+    document.getElementById(id).classList.add('hide');
+    setTimeout(function() { 
+        document.getElementById(id).style.display = 'none';
+    }, 500);
 }
