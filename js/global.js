@@ -4,7 +4,7 @@
 // const clientDomain = 'http://localhost:5500/';
 
 const serverDomain = 'https://mingleton-py.herokuapp.com/';
-const socketServerDomain = 'ws://mingleton-py.herokuapp.com/';
+const socketServerDomain = 'wss://mingleton-py.herokuapp.com/';
 const clientDomain = 'https://mingleton.isaacshea.com/';
 
 const discordID = localStorage.getItem('discordID');
